@@ -677,7 +677,7 @@ Also verify that unused AWS resources such as load balancers, EBS volumes, Elast
 
 ## Rushikesh Sutar
 
-**Senior Software Engineer — DevSecOps | Cloud | Kubernetes | Terraform | AWS | GCP**
+**DevSecOps Engineer — DevSecOps | Cloud | Kubernetes | Terraform | AWS | GCP**
 
 ### GitHub
 
