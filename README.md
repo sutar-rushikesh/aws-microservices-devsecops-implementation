@@ -1,4 +1,6 @@
-# AWS Microservices DevSecOps Implementation
+<div align="center">
+
+# 🚀 AWS Microservices DevSecOps Implementation
 
 A complete implementation and documentation repository for an AWS-based microservices DevSecOps platform.
 
@@ -27,6 +29,7 @@ The repository is organized into implementation phases so that each major compon
 - Linux
 
 ## Repository Structure
+---
 
 \\\	ext
 aws-microservices-devsecops-implementation/
@@ -90,8 +93,11 @@ aws-microservices-devsecops-implementation/
     └── 12-end-to-end/
 \\\
 
+---
+
 ## Implementation Phases
 
+---
 | Phase | Area |
 |---|---|
 | 01 | Architecture |
@@ -106,7 +112,7 @@ aws-microservices-devsecops-implementation/
 | 10 | Monitoring |
 | 11 | Alerting |
 | 12 | End-to-End Validation |
-
+---
 ## Documentation
 
 Detailed implementation documentation is maintained under the \docs/\ directory.
@@ -144,7 +150,42 @@ must never be committed to this repository.
 Implementation completed and documented phase-by-phase.
 
 Infrastructure resources may be destroyed after the required evidence and documentation have been captured.
+# 👨‍💻 Author
 
+## Rushikesh Sutar
+
+Senior Software Engineer — DevSecOps | Cloud | Kubernetes | Terraform | AWS | GCP
+
+### GitHub
+
+https://github.com/sutar-rushikesh
+
+### LinkedIn
+
+https://www.linkedin.com/in/devopswithrushikesh
+
+---
+
+# ⭐ Support
+
+If you found this project useful:
+
+⭐ Star this repository
+
+🍴 Fork this repository
+
+📢 Share it with the DevOps community
+
+🤝 Connect with me on LinkedIn
+
+---
+
+<div align="center">
+
+### Thank you for visiting this repository ❤️
+
+**Happy Learning!**
 ## License
 
 This project is intended for educational, portfolio, and technical demonstration purposes.
+<div align="center">
