@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # AWS Microservices DevSecOps Platform
 
 ![AWS](https://img.shields.io/badge/AWS-Cloud-orange)
@@ -236,7 +235,7 @@ Prometheus
                          |
                          v
                     Notifications
-=======
+
 # 🚀 AWS Microservices DevSecOps Implementation
 
 A production-style **AWS Microservices DevSecOps platform** implementing infrastructure automation, containerization, Kubernetes orchestration, CI/CD, GitOps, DNS, monitoring, alerting, and end-to-end validation.
@@ -320,12 +319,10 @@ The overall platform follows a cloud-native DevSecOps architecture:
                   │                  │               │
                   │            Alertmanager          │
                   └──────────────────────────────────┘
->>>>>>> e387bff3d0b85d2f3f04a6484c917d44cc5a51bd
 ```
 
 ---
 
-<<<<<<< HEAD
 # End-to-End Workflow
 
 The complete application delivery workflow is:
@@ -687,7 +684,6 @@ A recommended project structure is:
 ```text
 aws-microservices-devsecops-implementation/
 │
->>>>>>> e387bff3d0b85d2f3f04a6484c917d44cc5a51bd
 ├── README.md
 │
 ├── docs/
@@ -718,7 +714,6 @@ aws-microservices-devsecops-implementation/
 │   ├── 11-alerting/
 │   └── 12-end-to-end/
 │
-<<<<<<< HEAD
 ├── terraform/
 │   └── ...
 │
@@ -795,8 +790,6 @@ aws configure get region
 Example:
 
 ```text
-us-east-1
-=======
 └── terraform/
     ├── backend/
     ├── network/
@@ -878,12 +871,10 @@ Documentation:
 
 ```text
 docs/02-terraform-state/
->>>>>>> e387bff3d0b85d2f3f04a6484c917d44cc5a51bd
 ```
 
 ---
 
-<<<<<<< HEAD
 # Terraform
 
 Terraform is used for Infrastructure as Code.
@@ -930,8 +921,9 @@ Access keys
 Private keys
 Passwords
 Secrets
+```
 Terraform state containing sensitive information
-=======
+
 ## 03 — AWS Network & Jump Host
 
 Creates the AWS networking foundation required by the platform.
@@ -951,12 +943,10 @@ Documentation:
 
 ```text
 docs/03-aws-network/
->>>>>>> e387bff3d0b85d2f3f04a6484c917d44cc5a51bd
 ```
 
 ---
 
-<<<<<<< HEAD
 # Amazon EKS
 
 Verify the EKS cluster:
@@ -1006,7 +996,6 @@ Verify Kubernetes system components:
 
 ```bash
 kubectl get pods -n kube-system
-=======
 ## 04 — Amazon EKS
 
 Creates and configures the Kubernetes cluster.
@@ -1023,12 +1012,10 @@ Documentation:
 
 ```text
 docs/04-eks/
->>>>>>> e387bff3d0b85d2f3f04a6484c917d44cc5a51bd
 ```
 
 ---
 
-<<<<<<< HEAD
 # Amazon ECR
 
 List repositories:
@@ -1374,12 +1361,10 @@ Documentation:
 
 ```text
 docs/08-argocd-gitops/
->>>>>>> e387bff3d0b85d2f3f04a6484c917d44cc5a51bd
 ```
 
 ---
 
-<<<<<<< HEAD
 # Route 53
 
 Verify hosted zones:
@@ -2573,7 +2558,6 @@ docs/10-monitoring/
 
 ---
 
-<<<<<<< HEAD
 # Project Completion
 
 The project is considered complete after:
@@ -2863,7 +2847,6 @@ Lessons Learned
 
 ---
 
-<<<<<<< HEAD
 # Conclusion
 
 This project provides a complete reference implementation of an AWS-based microservices DevSecOps platform.
@@ -2962,7 +2945,6 @@ Also verify that unused AWS resources such as load balancers, EBS volumes, Elast
 
 ---
 
->>>>>>> e387bff3d0b85d2f3f04a6484c917d44cc5a51bd
 # 👨‍💻 Author
 
 ## Rushikesh Sutar
@@ -3000,8 +2982,5 @@ This project is intended for **educational, portfolio, and technical demonstrati
 
 Thank you for visiting this repository.
 
-<<<<<<< HEAD
 ---
-=======
 **Happy Learning & Building! 🚀**
->>>>>>> e387bff3d0b85d2f3f04a6484c917d44cc5a51bd
