@@ -1,6 +1,26 @@
 <div align="center">
 
-# 🚀 AWS Microservices DevSecOps Implementation
+# AWS Microservices DevSecOps Implementation
+
+### End-to-End Enterprise DevSecOps Platform on AWS
+
+<p align="center">
+
+CI • CD • Docker • Kubernetes • GKE • Jenkins • SonarQube • Trivy • Artifact Registry • ArgoCD • Prometheus • Grafana • NGINX Ingress • TLS/SSL • Terraform
+
+</p>
+
+<img src="./application/profile.jpeg" width="180" style="border-radius:50%" alt="Rushikesh Sutar">
+
+### 👨‍💻 Created by Rushikesh Sutar
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Rushikesh%20Sutar-blue?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/devopswithrushikesh)
+
+[![GitHub](https://img.shields.io/badge/GitHub-sutar--rushikesh-black?style=for-the-badge&logo=github)](https://github.com/sutar-rushikesh)
+
+</div>
+
+---
 
 A complete implementation and documentation repository for an AWS-based microservices DevSecOps platform.
 
