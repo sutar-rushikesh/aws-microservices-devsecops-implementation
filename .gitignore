@@ -1,0 +1,52 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log
+
+# Terraform plans
+*.tfplan
+plan.out
+
+# Jenkins
+jenkins_home/
+*.log
+
+# Kubernetes
+*.secret.yaml
+*.secret.yml
+
+# AWS
+.aws/
+.aws-sam/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*~
+
+# Generated files
+dist/
+build/
+target/
+
+# Evidence temporary files
+*.bak
