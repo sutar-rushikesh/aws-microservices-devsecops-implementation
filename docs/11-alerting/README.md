@@ -1,4 +1,28 @@
-1. Objectives
+# Phase 10 — Monitoring
+
+## Overview
+
+This phase implements monitoring for the AWS microservices DevSecOps platform.
+
+The objective is to provide visibility into the health, availability, and resource utilization of the Kubernetes workloads running on Amazon EKS.
+
+The monitoring layer is designed around:
+
+- Prometheus — Metrics collection and monitoring
+- Grafana — Metrics visualization and dashboards
+- Kubernetes — Application and infrastructure metrics
+- Amazon EKS — Kubernetes control plane and worker infrastructure
+- Alertmanager — Alert routing and notification management
+
+This phase focuses on monitoring and observability.
+
+Alerting configuration is documented separately in:
+
+```text
+docs/11-alerting/
+```
+
+## 1. Objectives
 
 The main objectives of this phase are:
 
@@ -11,7 +35,10 @@ Verify that metrics are being collected.
 Validate Grafana connectivity with Prometheus.
 Verify application and infrastructure visibility.
 Capture monitoring implementation evidence.
-2. Monitoring Architecture
+
+## 2. Monitoring Architecture
+
+```text
                          Users
                            |
                            v
@@ -37,6 +64,7 @@ Capture monitoring implementation evidence.
                           v
                      Monitoring
                       Visibility
+```
 
 The Kubernetes environment provides the application runtime platform.
 
@@ -44,7 +72,7 @@ Prometheus collects metrics from the Kubernetes environment and monitored worklo
 
 Grafana queries Prometheus and provides dashboards for operational visibility.
 
-3. Prerequisites
+## 3. Prerequisites
 
 Before starting this phase, verify that the following components are available:
 
@@ -59,37 +87,51 @@ Sufficient cluster resources
 
 Verify the Kubernetes connection:
 
+```bash
 kubectl get nodes
+```
 
 Expected result:
 
+```text
 NAME                         STATUS   ROLES    AGE
 <worker-node>                Ready    <none>   ...
+```
 
 Verify namespaces:
 
+```bash
 kubectl get namespaces
-4. Monitoring Namespace
+```
+
+## 4. Monitoring Namespace
 
 Create a dedicated namespace for monitoring components.
 
+```bash
 kubectl create namespace monitoring
+```
 
 Verify:
 
+```bash
 kubectl get namespace monitoring
+```
 
 Expected:
 
+```text
 NAME          STATUS
 monitoring    Active
+```
 
 If the namespace already exists, the command may return an AlreadyExists message.
 
 That is not an issue.
 
-5. Prometheus
-5.1 Purpose
+## 5. Prometheus
+
+### 5.1 Purpose
 
 Prometheus is responsible for collecting and storing time-series metrics.
 
@@ -104,30 +146,42 @@ CPU utilization
 Memory utilization
 Network metrics
 Request metrics where applications expose them
-6. Install Prometheus
+
+## 6. Install Prometheus
 
 If Prometheus is installed using Helm, first add the Prometheus community repository:
 
+```bash
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+```
 
 Update Helm repositories:
 
+```bash
 helm repo update
+```
 
 Install the monitoring stack:
 
+```bash
 helm install prometheus prometheus-community/kube-prometheus-stack \
   --namespace monitoring \
   --create-namespace
+```
 
 Verify Helm releases:
 
+```bash
 helm list -n monitoring
-7. Verify Prometheus Components
+```
+
+## 7. Verify Prometheus Components
 
 Check the monitoring pods:
 
+```bash
 kubectl get pods -n monitoring
+```
 
 The deployment should contain monitoring components such as:
 
@@ -141,45 +195,61 @@ Pod names may vary depending on the Helm chart version.
 
 Check all monitoring resources:
 
+```bash
 kubectl get all -n monitoring
-8. Verify Prometheus
+```
+
+## 8. Verify Prometheus
 
 Check Prometheus services:
 
+```bash
 kubectl get svc -n monitoring
+```
 
 Example:
 
+```text
 NAME                                    TYPE        CLUSTER-IP
 prometheus-operated                     ClusterIP  10.x.x.x
 prometheus-kube-prometheus-prometheus    ClusterIP  10.x.x.x
+```
 
 The exact service names may differ.
 
 Identify the Prometheus service:
 
+```bash
 kubectl get svc -n monitoring | grep prometheus
-9. Access Prometheus
+```
+
+## 9. Access Prometheus
 
 If Prometheus is exposed internally, use port forwarding:
 
+```bash
 kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 9090:9090
+```
 
 Open:
 
+```text
 http://localhost:9090
+```
 
 Verify that the Prometheus UI loads.
 
-10. Verify Prometheus Targets
+## 10. Verify Prometheus Targets
 
 Open the Prometheus UI.
 
 Navigate to:
 
+```text
 Status
     |
     +-- Targets
+```
 
 Prometheus should show discovered monitoring targets.
 
@@ -195,33 +265,45 @@ The exact target list depends on the installed monitoring configuration.
 
 Healthy targets should report:
 
+```text
 UP
-11. Prometheus Queries
+```
+
+## 11. Prometheus Queries
 
 Prometheus uses PromQL for querying metrics.
 
 Example query:
 
+```promql
 up
+```
 
 This verifies whether monitored targets are available.
 
 Node-related query:
 
+```promql
 node_uname_info
+```
 
 Memory-related query:
 
+```promql
 node_memory_MemAvailable_bytes
+```
 
 CPU-related query:
 
+```promql
 rate(node_cpu_seconds_total[5m])
+```
 
 The exact available metrics depend on the exporters and workloads deployed in the cluster.
 
-12. Grafana
-12.1 Purpose
+## 12. Grafana
+
+### 12.1 Purpose
 
 Grafana provides a visualization layer for Prometheus metrics.
 
@@ -235,28 +317,40 @@ Memory
 Network traffic
 Application metrics
 Resource consumption
-13. Verify Grafana
+
+## 13. Verify Grafana
 
 Check the Grafana service:
 
+```bash
 kubectl get svc -n monitoring | grep grafana
+```
 
 Check Grafana pod:
 
+```bash
 kubectl get pods -n monitoring | grep grafana
+```
 
 Expected status:
 
+```text
 Running
-14. Access Grafana
+```
+
+## 14. Access Grafana
 
 For a local administrative session, port forwarding can be used:
 
+```bash
 kubectl port-forward -n monitoring svc/prometheus-grafana 3000:80
+```
 
 Open:
 
+```text
 http://localhost:3000
+```
 
 The Grafana login page should appear.
 
@@ -264,16 +358,19 @@ The actual service name may vary depending on the Helm release name.
 
 Use:
 
+```bash
 kubectl get svc -n monitoring
+```
 
 to identify the correct service.
 
-15. Configure Prometheus as Grafana Data Source
+## 15. Configure Prometheus as Grafana Data Source
 
 Grafana should use Prometheus as its primary metrics data source.
 
 Navigate to:
 
+```text
 Grafana
     |
     +-- Connections
@@ -281,25 +378,35 @@ Grafana
           +-- Data Sources
                 |
                 +-- Prometheus
+```
 
 Configure the Prometheus endpoint according to the Kubernetes service created by the monitoring stack.
 
 Example internal endpoint:
 
+```text
 http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090
+```
 
 The exact service name should be obtained using:
 
+```bash
 kubectl get svc -n monitoring
+```
 
 Click:
 
+```text
 Save & Test
+```
 
 Expected result:
 
+```text
 Data source is working
-16. Grafana Dashboards
+```
+
+## 16. Grafana Dashboards
 
 Grafana dashboards provide visual representation of Prometheus metrics.
 
@@ -323,59 +430,82 @@ Network traffic
 Resource requests
 Resource limits
 Application availability
-17. Kubernetes Monitoring
+
+## 17. Kubernetes Monitoring
 
 Check node health:
 
+```bash
 kubectl get nodes
+```
 
 Check resource utilization:
 
+```bash
 kubectl top nodes
+```
 
 Check pod utilization:
 
+```bash
 kubectl top pods -A
+```
 
 If kubectl top is unavailable, verify that the cluster has a metrics-server or another supported resource metrics implementation.
 
-18. Monitor Application Pods
+## 18. Monitor Application Pods
 
 List application pods:
 
+```bash
 kubectl get pods -A
+```
 
 Inspect a specific application:
 
+```bash
 kubectl get pods -n <namespace>
+```
 
 Check pod details:
 
+```bash
 kubectl describe pod <pod-name> -n <namespace>
+```
 
 Check pod logs:
 
+```bash
 kubectl logs <pod-name> -n <namespace>
+```
 
 Check restart counts:
 
+```bash
 kubectl get pods -n <namespace>
+```
 
 Monitor the application from Grafana using the corresponding Kubernetes workload dashboards.
 
-19. Monitor Kubernetes Nodes
+## 19. Monitor Kubernetes Nodes
 
 List nodes:
 
+```bash
 kubectl get nodes
+```
 
 Check node details:
 
+```bash
 kubectl describe node <node-name>
+```
 
 Check resource usage:
 
+```bash
 kubectl top nodes
+```
 
 Important metrics include:
 
@@ -385,75 +515,102 @@ Disk
 Network
 Pod capacity
 Node availability
-20. Monitor Kubernetes Workloads
+
+## 20. Monitor Kubernetes Workloads
 
 Check deployments:
 
+```bash
 kubectl get deployments -A
+```
 
 Check ReplicaSets:
 
+```bash
 kubectl get replicasets -A
+```
 
 Check pods:
 
+```bash
 kubectl get pods -A
+```
 
 Check services:
 
+```bash
 kubectl get services -A
+```
 
 These resources provide the foundation for application-level monitoring.
 
-21. Monitoring Health Checks
+## 21. Monitoring Health Checks
 
 Verify Prometheus:
 
+```bash
 kubectl get pods -n monitoring | grep prometheus
+```
 
 Verify Grafana:
 
+```bash
 kubectl get pods -n monitoring | grep grafana
+```
 
 Verify Alertmanager:
 
+```bash
 kubectl get pods -n monitoring | grep alertmanager
+```
 
 Verify node exporter:
 
+```bash
 kubectl get pods -n monitoring | grep node-exporter
+```
 
 Verify kube-state-metrics:
 
+```bash
 kubectl get pods -n monitoring | grep kube-state-metrics
-22. Monitoring Validation
+```
+
+## 22. Monitoring Validation
 
 The monitoring implementation should satisfy the following validation points.
 
-Prometheus
+### Prometheus
+
 Prometheus pod is running.
 Prometheus service is available.
 Prometheus UI is accessible.
 Prometheus targets are discovered.
 Targets report healthy status.
 PromQL queries return metrics.
-Grafana
+
+### Grafana
+
 Grafana pod is running.
 Grafana UI is accessible.
 Prometheus is configured as a data source.
 Grafana can query Prometheus.
 Kubernetes dashboards display metrics.
-Kubernetes
+
+### Kubernetes
+
 Nodes are visible.
 Pods are visible.
 Workloads are visible.
 CPU metrics are available.
 Memory metrics are available.
 Pod health can be monitored.
-23. Monitoring Flow
+
+## 23. Monitoring Flow
 
 The complete monitoring flow is:
 
+```text
 Kubernetes Cluster
        |
        +-------------------+
@@ -473,14 +630,19 @@ Kubernetes Cluster
                  |
                  v
           Monitoring UI
-24. Monitoring Evidence
+```
+
+## 24. Monitoring Evidence
 
 Store implementation evidence under:
 
+```text
 evidence/10-monitoring/
+```
 
 Recommended evidence:
 
+```text
 01-monitoring-namespace.png
 02-prometheus-pods.png
 03-grafana-pods.png
@@ -493,6 +655,7 @@ Recommended evidence:
 10-kubernetes-node-metrics.png
 11-kubernetes-pod-metrics.png
 12-monitoring-overview.png
+```
 
 Evidence should demonstrate:
 
@@ -511,66 +674,89 @@ Overall monitoring visibility.
 
 Do not capture or commit passwords, tokens, credentials, or other secrets in screenshots.
 
-25. Troubleshooting
-Prometheus pod is not running
+## 25. Troubleshooting
+
+### Prometheus pod is not running
 
 Check:
 
+```bash
 kubectl get pods -n monitoring
+```
 
 Then:
 
+```bash
 kubectl describe pod <prometheus-pod> -n monitoring
+```
 
 Check logs:
 
+```bash
 kubectl logs <prometheus-pod> -n monitoring
-Grafana cannot connect to Prometheus
+```
+
+### Grafana cannot connect to Prometheus
 
 Check Prometheus service:
 
+```bash
 kubectl get svc -n monitoring | grep prometheus
+```
 
 Verify DNS/service connectivity from inside the cluster.
 
 Confirm that the Grafana data source points to the correct Prometheus service.
 
-Prometheus targets are DOWN
+### Prometheus targets are DOWN
 
 Open:
 
+```text
 Prometheus
     |
     +-- Status
           |
           +-- Targets
+```
 
 Identify the failed target.
 
 Then inspect the corresponding Kubernetes component:
 
+```bash
 kubectl get pods -n monitoring
+```
 
 Check logs:
 
+```bash
 kubectl logs <pod-name> -n monitoring
-No CPU or memory metrics
+```
+
+### No CPU or memory metrics
 
 Check:
 
+```bash
 kubectl top nodes
+```
 
 and:
 
+```bash
 kubectl top pods -A
+```
 
 If metrics are unavailable, verify the metrics-server or equivalent resource metrics implementation.
 
-Grafana dashboard has no data
+### Grafana dashboard has no data
 
 First verify Prometheus:
 
+```promql
 up
+```
 
 If Prometheus returns metrics but Grafana shows no data:
 
@@ -579,7 +765,8 @@ Verify the Prometheus endpoint.
 Check the selected dashboard.
 Check the dashboard time range.
 Verify the PromQL queries.
-26. Operational Monitoring
+
+## 26. Operational Monitoring
 
 The monitoring platform should be used to observe the application continuously.
 
@@ -597,7 +784,7 @@ Monitoring component health
 
 Monitoring should be reviewed before troubleshooting application or infrastructure problems.
 
-27. Security Considerations
+## 27. Security Considerations
 
 Monitoring endpoints should not be exposed publicly without appropriate security controls.
 
@@ -611,7 +798,8 @@ Protect Grafana credentials.
 Do not commit credentials to Git.
 Use Kubernetes Secrets where appropriate.
 Use IAM and AWS security controls for AWS resources.
-28. Relationship With Alerting
+
+## 28. Relationship With Alerting
 
 Monitoring provides the metrics and visibility layer.
 
@@ -619,6 +807,7 @@ Alerting uses those metrics to identify abnormal conditions.
 
 The conceptual flow is:
 
+```text
 Kubernetes
     |
     v
@@ -634,28 +823,36 @@ Alertmanager
     |
     v
 Notifications
+```
 
 Alert rules and notification configuration are documented in:
 
+```text
 docs/11-alerting/
-29. Phase Validation Checklist
-Component	Validation	Status
-Monitoring namespace	Created	Completed / Pending
-Prometheus	Running	Completed / Pending
-Prometheus targets	Healthy	Completed / Pending
-PromQL	Metrics returned	Completed / Pending
-Grafana	Running	Completed / Pending
-Prometheus datasource	Connected	Completed / Pending
-Kubernetes dashboards	Visible	Completed / Pending
-Node metrics	Available	Completed / Pending
-Pod metrics	Available	Completed / Pending
-Monitoring evidence	Captured	Completed / Pending
-30. Phase Outcome
+```
+
+## 29. Phase Validation Checklist
+
+| Component | Validation | Status |
+|---|---|---|
+| Monitoring namespace | Created | Completed / Pending |
+| Prometheus | Running | Completed / Pending |
+| Prometheus targets | Healthy | Completed / Pending |
+| PromQL | Metrics returned | Completed / Pending |
+| Grafana | Running | Completed / Pending |
+| Prometheus datasource | Connected | Completed / Pending |
+| Kubernetes dashboards | Visible | Completed / Pending |
+| Node metrics | Available | Completed / Pending |
+| Pod metrics | Available | Completed / Pending |
+| Monitoring evidence | Captured | Completed / Pending |
+
+## 30. Phase Outcome
 
 At the end of this phase, the AWS microservices platform has a centralized monitoring layer.
 
 The completed monitoring architecture provides:
 
+```text
 Amazon EKS
      |
      +-------------------------+
@@ -675,6 +872,7 @@ Kubernetes Metrics       Node Metrics
           |               |
           v               v
      Visualization    Alerting
+```
 
 Prometheus provides metrics collection and querying.
 
@@ -682,7 +880,7 @@ Grafana provides visualization and operational dashboards.
 
 The monitoring foundation is now ready for the alerting implementation in Phase 11.
 
-Phase 10 Completed
+## Phase 10 Completed
 
 Monitoring is considered complete when:
 
@@ -694,11 +892,22 @@ Grafana is connected to Prometheus.
 Kubernetes metrics are visible.
 Application and infrastructure health can be observed.
 Monitoring evidence is stored under:
+
+```text
 evidence/10-monitoring/
+```
 
 The next phase is:
 
+```text
 Phase 11 — Alerting
+```
+
+---
+
+# Phase 11 — Alerting
+
+## Overview
 
 Prometheus collects metrics from the Kubernetes environment.
 
@@ -710,7 +919,7 @@ Alertmanager is responsible for grouping, routing, and managing alerts.
 
 Grafana continues to provide visualization of the underlying metrics.
 
-3. Prerequisites
+## 3. Prerequisites
 
 Before starting this phase, verify that Phase 10 has been completed.
 
@@ -727,49 +936,71 @@ Helm if Helm was used for the monitoring deployment
 
 Verify the cluster:
 
+```bash
 kubectl get nodes
+```
 
 Verify monitoring:
 
+```bash
 kubectl get pods -n monitoring
+```
 
 Verify Alertmanager:
 
+```bash
 kubectl get pods -n monitoring | grep alertmanager
-4. Verify Alertmanager
+```
+
+## 4. Verify Alertmanager
 
 Check all monitoring services:
 
+```bash
 kubectl get svc -n monitoring
+```
 
 Identify the Alertmanager service:
 
+```bash
 kubectl get svc -n monitoring | grep alertmanager
+```
 
 Check Alertmanager pods:
 
+```bash
 kubectl get pods -n monitoring | grep alertmanager
+```
 
 Expected status:
 
+```text
 Running
-5. Access Alertmanager
+```
+
+## 5. Access Alertmanager
 
 For local administrative access, use port forwarding.
 
 First identify the Alertmanager service:
 
+```bash
 kubectl get svc -n monitoring | grep alertmanager
+```
 
 Then forward the service port.
 
 Example:
 
+```bash
 kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-alertmanager 9093:9093
+```
 
 Open:
 
+```text
 http://localhost:9093
+```
 
 The Alertmanager UI should be accessible.
 
@@ -777,14 +1008,17 @@ The exact service name may vary depending on the Helm release.
 
 Use:
 
+```bash
 kubectl get svc -n monitoring
+```
 
 to identify the correct service.
 
-6. Alertmanager Components
+## 6. Alertmanager Components
 
 Alertmanager provides several important capabilities:
 
+```text
 Alertmanager
     |
     +-- Alert grouping
@@ -796,10 +1030,11 @@ Alertmanager
     +-- Alert inhibition
     |
     +-- Notification delivery
+```
 
 This prevents operators from receiving unnecessary duplicate notifications when multiple alerts originate from the same underlying problem.
 
-7. Alert Rules
+## 7. Alert Rules
 
 Alert rules define conditions that should generate alerts.
 
@@ -817,14 +1052,17 @@ Monitoring component failures
 
 Alert rules should be based on metrics collected by Prometheus.
 
-8. Alert Rule Directory
+## 8. Alert Rule Directory
 
 Store alert rule configuration in the project repository under:
 
+```text
 monitoring/alert-rules/
+```
 
 Recommended structure:
 
+```text
 monitoring/
 └── alert-rules/
     ├── README.md
@@ -832,13 +1070,15 @@ monitoring/
     ├── node-alerts.yaml
     ├── pod-alerts.yaml
     └── application-alerts.yaml
+```
 
 The exact files can be adjusted according to the implementation.
 
-9. Example Alert Rule
+## 9. Example Alert Rule
 
 A basic Kubernetes pod availability rule can be represented as:
 
+```yaml
 groups:
   - name: kubernetes-alerts
     rules:
@@ -850,6 +1090,7 @@ groups:
         annotations:
           summary: "Kubernetes pod is not ready"
           description: "A Kubernetes pod has remained in a non-ready state for more than 5 minutes."
+```
 
 The rule contains:
 
@@ -858,39 +1099,49 @@ expr
 for
 labels
 annotations
-10. Alert Rule Components
-Alert Name
+
+## 10. Alert Rule Components
+
+### Alert Name
 
 Example:
 
+```yaml
 alert: PodNotReady
+```
 
 This identifies the alert.
 
-Expression
+### Expression
 
 Example:
 
+```yaml
 expr: kube_pod_status_ready{condition="false"} == 1
+```
 
 The expression determines when the alert condition is true.
 
-Duration
+### Duration
 
 Example:
 
+```yaml
 for: 5m
+```
 
 This prevents transient conditions from immediately generating alerts.
 
 The condition must remain true for the specified duration.
 
-Severity
+### Severity
 
 Example:
 
+```yaml
 labels:
   severity: warning
+```
 
 Severity labels can be used for routing and prioritization.
 
@@ -899,21 +1150,26 @@ Typical levels include:
 info
 warning
 critical
-Annotations
+
+### Annotations
 
 Annotations provide human-readable information.
 
 Example:
 
+```yaml
 annotations:
   summary: "Kubernetes pod is not ready"
   description: "A Kubernetes pod has remained in a non-ready state for more than 5 minutes."
-11. Pod Restart Alert
+```
+
+## 11. Pod Restart Alert
 
 A pod restart condition can be monitored using Kubernetes container restart metrics.
 
 Example:
 
+```yaml
 groups:
   - name: pod-alerts
     rules:
@@ -925,6 +1181,7 @@ groups:
         annotations:
           summary: "Pod is restarting frequently"
           description: "A container has restarted multiple times during the last 10 minutes."
+```
 
 This can help identify:
 
@@ -933,12 +1190,14 @@ Configuration problems
 Resource exhaustion
 Dependency failures
 Container startup failures
-12. Node Availability Alert
+
+## 12. Node Availability Alert
 
 Node availability should be monitored to detect worker-node problems.
 
 Example:
 
+```yaml
 groups:
   - name: node-alerts
     rules:
@@ -950,15 +1209,17 @@ groups:
         annotations:
           summary: "Kubernetes node is not ready"
           description: "A Kubernetes worker node has remained in a non-ready state."
+```
 
 This type of alert is important because node failures can affect multiple workloads.
 
-13. CPU Utilization Alert
+## 13. CPU Utilization Alert
 
 CPU utilization can be monitored using node or container metrics.
 
 Example concept:
 
+```yaml
 groups:
   - name: resource-alerts
     rules:
@@ -970,17 +1231,19 @@ groups:
         annotations:
           summary: "High CPU utilization detected"
           description: "CPU utilization has remained above the configured threshold."
+```
 
 The exact PromQL expression should match the metrics exposed by the monitoring implementation.
 
 Before adding an alert rule, verify the metric exists in Prometheus.
 
-14. Memory Utilization Alert
+## 14. Memory Utilization Alert
 
 Memory utilization can also be monitored.
 
 Example concept:
 
+```yaml
 groups:
   - name: resource-alerts
     rules:
@@ -992,10 +1255,11 @@ groups:
         annotations:
           summary: "High memory utilization detected"
           description: "Memory utilization has remained above the configured threshold."
+```
 
 The expression should be validated against the actual Prometheus metrics available in the cluster.
 
-15. Application Availability
+## 15. Application Availability
 
 Application availability should be monitored where application-specific metrics are available.
 
@@ -1011,12 +1275,13 @@ Container restarts
 
 Application-specific alert rules should be added only when the required metrics are available.
 
-16. Deployment Availability
+## 16. Deployment Availability
 
 Deployment availability can be monitored using Kubernetes state metrics.
 
 Example concept:
 
+```yaml
 groups:
   - name: deployment-alerts
     rules:
@@ -1028,15 +1293,17 @@ groups:
         annotations:
           summary: "Deployment replicas are unavailable"
           description: "One or more expected application replicas are unavailable."
+```
 
 The exact expression should be validated against the metrics exposed by kube-state-metrics.
 
-17. Configure Alert Rules
+## 17. Configure Alert Rules
 
 If using kube-prometheus-stack, alert rules can be managed using PrometheusRule resources.
 
 Example:
 
+```yaml
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -1054,29 +1321,39 @@ spec:
           annotations:
             summary: "Kubernetes pod is not ready"
             description: "A Kubernetes pod has remained in a non-ready state for more than 5 minutes."
+```
 
 Apply the rule:
 
+```bash
 kubectl apply -f monitoring/alert-rules/kubernetes-alerts.yaml
-18. Verify PrometheusRule
+```
+
+## 18. Verify PrometheusRule
 
 List PrometheusRule resources:
 
+```bash
 kubectl get prometheusrule -n monitoring
+```
 
 Inspect a specific rule:
 
+```bash
 kubectl describe prometheusrule kubernetes-alert-rules -n monitoring
+```
 
 Verify the rule was accepted by the Prometheus Operator.
 
-19. Verify Alert Rules in Prometheus
+## 19. Verify Alert Rules in Prometheus
 
 Open the Prometheus UI.
 
 Navigate to:
 
+```text
 Alerts
+```
 
 Prometheus should display configured alert rules.
 
@@ -1084,34 +1361,45 @@ You can also use the Prometheus API/UI to verify rule evaluation.
 
 The alert should show a state such as:
 
+```text
 Inactive
 Pending
 Firing
-20. Alert States
-Inactive
+```
+
+## 20. Alert States
+
+### Inactive
 
 The alert condition is currently false.
 
+```text
 Condition = false
 
 No alert is generated.
+```
 
-Pending
+### Pending
 
 The alert condition is true, but the configured for duration has not elapsed.
 
+```text
 Condition = true
 Timer = running
-Firing
+```
+
+### Firing
 
 The condition has remained true for the configured duration.
 
+```text
 Condition = true
 Timer = completed
+```
 
 Prometheus sends the alert to Alertmanager.
 
-21. Test Alert Generation
+## 21. Test Alert Generation
 
 Alerting should be tested in a controlled environment.
 
@@ -1119,6 +1407,7 @@ One approach is to create a temporary test alert.
 
 Example:
 
+```yaml
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -1136,51 +1425,70 @@ spec:
           annotations:
             summary: "DevSecOps test alert"
             description: "Temporary alert used to validate the monitoring and alerting pipeline."
+```
 
 Apply:
 
+```bash
 kubectl apply -f test-alert.yaml
+```
 
 After the configured duration, verify the alert in Prometheus.
 
 After validation, remove the test alert:
 
+```bash
 kubectl delete prometheusrule test-alert -n monitoring
+```
 
 Do not leave temporary test alerts in the production configuration.
 
-22. Alertmanager Verification
+## 22. Alertmanager Verification
 
 Check Alertmanager:
 
+```bash
 kubectl get pods -n monitoring | grep alertmanager
+```
 
 Check logs:
 
+```bash
 kubectl logs -n monitoring <alertmanager-pod>
+```
 
 Check the Alertmanager service:
 
+```bash
 kubectl get svc -n monitoring | grep alertmanager
+```
 
 Access the UI using port forwarding:
 
+```bash
 kubectl port-forward -n monitoring svc/<alertmanager-service> 9093:9093
+```
 
 Open:
 
+```text
 http://localhost:9093
-23. Alertmanager Routing
+```
+
+## 23. Alertmanager Routing
 
 Alertmanager can route alerts based on labels.
 
 For example:
 
+```text
 severity=warning
 severity=critical
+```
 
 A conceptual routing structure is:
 
+```text
 Alertmanager
      |
      +---------------------+
@@ -1190,10 +1498,11 @@ Alertmanager
      |                     |
      v                     v
  Warning Channel      Critical Channel
+```
 
 This allows operational teams to prioritize critical infrastructure events.
 
-24. Notification Configuration
+## 24. Notification Configuration
 
 Notification destinations depend on the implementation.
 
@@ -1210,7 +1519,7 @@ Notification credentials must not be committed to Git.
 
 Use Kubernetes Secrets or an appropriate external secret-management mechanism.
 
-25. Secret Management
+## 25. Secret Management
 
 Never store credentials directly in:
 
@@ -1227,10 +1536,12 @@ AWS Secrets Manager
 Jenkins Credentials
 External Secrets
 IAM-based authentication
-26. Alert Severity Model
+
+## 26. Alert Severity Model
 
 A simple severity model can be used:
 
+```text
 INFO
  |
  +-- Informational condition
@@ -1242,17 +1553,20 @@ WARNING
 CRITICAL
  |
  +-- Immediate operational attention required
+```
 
 Example:
 
+```text
 Pod restart spike       -> WARNING
 High resource usage     -> WARNING
 Node unavailable        -> CRITICAL
 Application unavailable -> CRITICAL
+```
 
 The actual severity should be determined according to operational requirements.
 
-27. Alert Deduplication
+## 27. Alert Deduplication
 
 Alertmanager can group similar alerts.
 
@@ -1260,6 +1574,7 @@ For example, if several pods on the same node fail simultaneously, grouping can 
 
 Conceptually:
 
+```text
 Pod 1 Failure
 Pod 2 Failure
 Pod 3 Failure
@@ -1270,52 +1585,69 @@ Pod 4 Failure
        |
        v
 Grouped Notification
+```
 
 This makes alerts easier to consume.
 
-28. Alert Inhibition
+## 28. Alert Inhibition
 
 Alertmanager can also suppress secondary alerts when a higher-level failure is already known.
 
 Example:
 
+```text
 Node failure
      |
      +--> Pod failures
      +--> Application failures
      +--> Resource failures
+```
 
 Instead of generating separate notifications for every dependent workload, a higher-priority node alert can be used to identify the root cause.
 
-29. Alert Validation Commands
+## 29. Alert Validation Commands
 
 Check PrometheusRule resources:
 
+```bash
 kubectl get prometheusrule -n monitoring
+```
 
 Check monitoring pods:
 
+```bash
 kubectl get pods -n monitoring
+```
 
 Check Alertmanager:
 
+```bash
 kubectl get pods -n monitoring | grep alertmanager
+```
 
 Check services:
 
+```bash
 kubectl get svc -n monitoring
+```
 
 Check cluster nodes:
 
+```bash
 kubectl get nodes
+```
 
 Check workloads:
 
+```bash
 kubectl get pods -A
-30. End-to-End Alert Flow
+```
+
+## 30. End-to-End Alert Flow
 
 The expected alerting flow is:
 
+```text
 Kubernetes Workload
         |
         v
@@ -1338,17 +1670,21 @@ Kubernetes Workload
         |
         v
  Notification
+```
 
 This validates the complete alerting pipeline.
 
-31. Alerting Evidence
+## 31. Alerting Evidence
 
 Store implementation evidence under:
 
+```text
 evidence/11-alerting/
+```
 
 Recommended evidence:
 
+```text
 01-alertmanager-pods.png
 02-alertmanager-service.png
 03-prometheus-alert-rules.png
@@ -1361,6 +1697,7 @@ Recommended evidence:
 10-node-alert.png
 11-pod-restart-alert.png
 12-alerting-overview.png
+```
 
 Evidence should demonstrate:
 
@@ -1381,33 +1718,46 @@ Access keys
 Webhook secrets
 SMTP credentials
 Kubernetes Secret values
-32. Troubleshooting
-Alertmanager pod is not running
+
+## 32. Troubleshooting
+
+### Alertmanager pod is not running
 
 Check:
 
+```bash
 kubectl get pods -n monitoring | grep alertmanager
+```
 
 Inspect:
 
+```bash
 kubectl describe pod <alertmanager-pod> -n monitoring
+```
 
 Check logs:
 
+```bash
 kubectl logs <alertmanager-pod> -n monitoring
-Alert rule is not visible in Prometheus
+```
+
+### Alert rule is not visible in Prometheus
 
 Check:
 
+```bash
 kubectl get prometheusrule -n monitoring
+```
 
 Inspect:
 
+```bash
 kubectl describe prometheusrule <rule-name> -n monitoring
+```
 
 Check Prometheus Operator and Prometheus logs if the rule is not being discovered.
 
-Alert remains inactive
+### Alert remains inactive
 
 Check:
 
@@ -1420,31 +1770,39 @@ Prometheus target health.
 
 Test the expression directly in Prometheus.
 
-Alert remains pending
+### Alert remains pending
 
 Check the configured:
 
+```text
 for:
+```
 
 For example:
 
+```yaml
 for: 5m
+```
 
 The condition must remain true for the full duration before the alert becomes firing.
 
-Alert is firing but Alertmanager does not receive it
+### Alert is firing but Alertmanager does not receive it
 
 Verify:
 
+```bash
 kubectl get pods -n monitoring | grep alertmanager
+```
 
 Then check Alertmanager logs:
 
+```bash
 kubectl logs -n monitoring <alertmanager-pod>
+```
 
 Also verify Prometheus configuration and Alertmanager connectivity.
 
-Alertmanager receives the alert but notification is not delivered
+### Alertmanager receives the alert but notification is not delivered
 
 Check:
 
@@ -1457,7 +1815,7 @@ Notification provider status.
 
 Never expose notification credentials in the repository.
 
-33. Security Considerations
+## 33. Security Considerations
 
 Alerting systems can contain operationally sensitive information.
 
@@ -1472,12 +1830,14 @@ Use Kubernetes Secrets for sensitive configuration.
 Use IAM-based authentication where appropriate.
 Do not commit secrets to Git.
 Limit access to monitoring namespaces.
-34. Monitoring and Alerting Relationship
+
+## 34. Monitoring and Alerting Relationship
 
 Phase 10 established monitoring.
 
 Phase 11 builds alerting on top of those metrics.
 
+```text
 Phase 10
 Monitoring
     |
@@ -1493,6 +1853,7 @@ Alertmanager
     |
     v
 Notifications
+```
 
 Monitoring answers:
 
@@ -1501,24 +1862,29 @@ Monitoring answers:
 Alerting answers:
 
 "What requires attention?"
-35. Phase Validation Checklist
-Component	Validation	Status
-Alertmanager	Running	Completed / Pending
-PrometheusRule	Created	Completed / Pending
-Alert rules	Visible in Prometheus	Completed / Pending
-Alert evaluation	Working	Completed / Pending
-Test alert	Fired successfully	Completed / Pending
-Alertmanager	Received alert	Completed / Pending
-Alert routing	Validated	Completed / Pending
-Notification	Validated if configured	Completed / Pending
-Kubernetes alert	Validated	Completed / Pending
-Evidence	Captured	Completed / Pending
-36. Phase Outcome
+
+## 35. Phase Validation Checklist
+
+| Component | Validation | Status |
+|---|---|---|
+| Alertmanager | Running | Completed / Pending |
+| PrometheusRule | Created | Completed / Pending |
+| Alert rules | Visible in Prometheus | Completed / Pending |
+| Alert evaluation | Working | Completed / Pending |
+| Test alert | Fired successfully | Completed / Pending |
+| Alertmanager | Received alert | Completed / Pending |
+| Alert routing | Validated | Completed / Pending |
+| Notification | Validated if configured | Completed / Pending |
+| Kubernetes alert | Validated | Completed / Pending |
+| Evidence | Captured | Completed / Pending |
+
+## 36. Phase Outcome
 
 At the end of this phase, the platform has an alerting layer capable of detecting important operational conditions.
 
 The completed architecture is:
 
+```text
                     AWS
                      |
                      v
@@ -1543,6 +1909,7 @@ The completed architecture is:
           |                     |
           v                     v
       Alert Routing       Notifications
+```
 
 Prometheus evaluates infrastructure and workload conditions.
 
@@ -1550,7 +1917,7 @@ Alertmanager manages alert grouping, routing, and notification delivery.
 
 This provides an operational alerting mechanism for the microservices platform.
 
-37. Phase 11 Completed
+## 37. Phase 11 Completed
 
 Alerting is considered complete when:
 
@@ -1563,8 +1930,13 @@ Alertmanager receives the alert.
 Alert routing works.
 Notification delivery is validated where configured.
 Alerting evidence is stored under:
+
+```text
 evidence/11-alerting/
+```
 
 The next phase is:
 
+```text
 Phase 12 — End-to-End Validation
+```

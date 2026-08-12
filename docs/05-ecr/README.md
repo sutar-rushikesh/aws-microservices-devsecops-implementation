@@ -1,87 +1,100 @@
 # Phase 05 — Amazon ECR
 
-## Overview
+## 📌 Overview
 
-This phase implements the container image registry layer of the AWS Microservices DevSecOps platform using Amazon Elastic Container Registry (Amazon ECR).
+Phase 05 implements the container image registry layer of the AWS Microservices DevSecOps platform using Amazon Elastic Container Registry (Amazon ECR).
 
-The objective is to create isolated ECR repositories for the individual microservices and establish the foundation required for the CI pipeline to build, tag, scan, authenticate, and push container images.
+The objective is to create isolated ECR repositories for the individual microservices and establish the foundation required for the CI pipeline to:
 
-The ECR repositories act as the central image registry between the Jenkins CI layer and the Amazon EKS deployment platform.
+- Build container images
+- Tag container images
+- Authenticate with Amazon ECR
+- Scan container images
+- Push images to ECR
+- Make images available for Kubernetes deployments
+
+Amazon ECR acts as the central container image registry between the Jenkins CI layer and the Amazon EKS deployment platform.
 
 ---
 
-## Objectives
+# 🎯 Objectives
 
 The main objectives of this phase are:
 
-- Create ECR repositories for microservices.
-- Maintain one repository per microservice.
-- Configure repository-level image management.
-- Authenticate Jenkins with Amazon ECR.
-- Build Docker images from individual microservice source code.
-- Apply unique image tags using Jenkins build numbers.
-- Push images to ECR.
-- Make container images available for Kubernetes deployments.
-- Prepare the image flow required by the GitOps deployment process.
+1. Create ECR repositories for microservices.
+2. Maintain one repository per microservice.
+3. Configure repository-level image management.
+4. Authenticate Jenkins with Amazon ECR.
+5. Build Docker images from individual microservice source code.
+6. Apply unique image tags using Jenkins build numbers.
+7. Push container images to ECR.
+8. Enable image scanning.
+9. Make container images available for Kubernetes deployments.
+10. Prepare the image flow required by the GitOps deployment process.
 
 ---
 
-## Architecture
+# 🏗️ Architecture
 
 The image lifecycle implemented in this phase is:
 
 ```text
 Microservice Source Code
-        |
-        v
+        │
+        ▼
      Jenkins
-        |
-        | Docker Build
-        v
+        │
+        │ Docker Build
+        ▼
    Docker Image
-        |
-        | Tag
-        v
+        │
+        │ Tag
+        ▼
  Amazon ECR Repository
-        |
-        | Image
-        v
+        │
+        │ Image
+        ▼
    Kubernetes / EKS
-
-
+```
 
 The complete CI/CD flow is:
 
+```text
 Developer
-   |
-   v
+    │
+    ▼
 GitHub Repository
-   |
-   v
+    │
+    ▼
 Jenkins CI
-   |
-   +---- Build Docker Image
-   |
-   +---- Authenticate with ECR
-   |
-   +---- Tag Image
-   |
-   +---- Push Image
-   |
-   v
-Amazon ECR
-   |
-   v
-Kubernetes Deployment
-   |
-   v
-Amazon EKS
-ECR Repository Strategy
+    │
+    ├── Build Docker Image
+    │
+    ├── Authenticate with ECR
+    │
+    ├── Tag Image
+    │
+    └── Push Image
+             │
+             ▼
+        Amazon ECR
+             │
+             ▼
+     Kubernetes Deployment
+             │
+             ▼
+         Amazon EKS
+```
+
+---
+
+# 📦 ECR Repository Strategy
 
 A separate ECR repository is maintained for each microservice.
 
 Example:
 
+```text
 Amazon ECR
 │
 ├── adservice
@@ -95,87 +108,97 @@ Amazon ECR
 ├── recommendationservice
 ├── shippingservice
 └── shoppingassistantservice
+```
 
 The exact list of services should match the microservices implemented in the project.
 
-This repository-per-service approach provides:
+The repository-per-service approach provides:
 
-Service-level image isolation
-Independent image versioning
-Easier deployment management
-Easier image lifecycle management
-Clear ownership of container images
-Simplified Kubernetes image references
-ECR Image Naming
+- Service-level image isolation
+- Independent image versioning
+- Easier deployment management
+- Easier image lifecycle management
+- Clear ownership of container images
+- Simplified Kubernetes image references
+
+---
+
+# 🏷️ ECR Image Naming
 
 The standard ECR image format is:
 
+```text
 ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com/REPOSITORY:TAG
+```
 
 Example:
 
+```text
 264991295389.dkr.ecr.us-east-1.amazonaws.com/adservice:10
+```
 
 Where:
 
-264991295389
+| Value | Description |
+|---|---|
+| `264991295389` | AWS account ID |
+| `us-east-1` | AWS region |
+| `adservice` | ECR repository |
+| `10` | Image tag generated from Jenkins build number |
 
-is the AWS account ID.
+---
 
-us-east-1
-
-is the AWS region.
-
-adservice
-
-is the ECR repository.
-
-10
-
-is the image tag generated from the Jenkins build number.
-
-Image Tagging Strategy
+# 🔖 Image Tagging Strategy
 
 The project uses Jenkins build numbers as image tags.
 
 Example:
 
+```text
 adservice:1
 adservice:2
 adservice:3
 adservice:4
+```
 
 The corresponding ECR image references become:
 
+```text
 264991295389.dkr.ecr.us-east-1.amazonaws.com/adservice:1
 264991295389.dkr.ecr.us-east-1.amazonaws.com/adservice:2
 264991295389.dkr.ecr.us-east-1.amazonaws.com/adservice:3
 264991295389.dkr.ecr.us-east-1.amazonaws.com/adservice:4
+```
 
 This provides traceability between:
 
+```text
 Git Commit
-    |
-    v
+    │
+    ▼
 Jenkins Build
-    |
-    v
+    │
+    ▼
 Docker Image Tag
-    |
-    v
+    │
+    ▼
 ECR Image
-    |
-    v
+    │
+    ▼
 Kubernetes Deployment
+```
 
-Using unique build-based tags also avoids relying exclusively on the mutable latest tag.
+Using unique build-based tags also avoids relying exclusively on the mutable `latest` tag.
 
-Terraform ECR Configuration
+---
+
+# 🏗️ Terraform ECR Configuration
 
 ECR repositories can be provisioned using Terraform.
 
 Example:
 
+```hcl
 resource "aws_ecr_repository" "adservice" {
   name                 = "adservice"
   image_tag_mutability = "MUTABLE"
@@ -190,20 +213,24 @@ resource "aws_ecr_repository" "adservice" {
     ManagedBy   = "Terraform"
   }
 }
+```
 
 The same pattern can be used for the remaining microservices.
 
-Repository Configuration
+---
 
-Each repository should define:
+# ⚙️ Repository Configuration
 
-Repository Name
-Image Tag Mutability
-Image Scanning
-Tags
+Each ECR repository should define:
+
+- Repository name
+- Image tag mutability
+- Image scanning configuration
+- Resource tags
 
 Example:
 
+```text
 Repository:
 adservice
 
@@ -218,99 +245,140 @@ dev
 
 ManagedBy:
 Terraform
-Image Scanning
+```
+
+---
+
+# 🔍 Image Scanning
 
 ECR image scanning is enabled as part of the repository configuration.
 
 Example:
 
+```hcl
 image_scanning_configuration {
   scan_on_push = true
 }
+```
 
 The purpose of image scanning is to identify vulnerabilities in container images after they are pushed to ECR.
 
 The image security flow is:
 
+```text
 Docker Build
-     |
-     v
+     │
+     ▼
 ECR Push
-     |
-     v
+     │
+     ▼
 Image Scan
-     |
-     v
+     │
+     ▼
 Vulnerability Findings
+```
 
 This forms part of the DevSecOps security controls implemented in the project.
 
-Jenkins → ECR Authentication
+---
+
+# 🔐 Jenkins → ECR Authentication
 
 Jenkins requires permission to authenticate with Amazon ECR.
 
 The authentication command used by the CI pipeline is:
 
+```bash
 aws ecr get-login-password --region us-east-1 \
   | docker login \
   --username AWS \
   --password-stdin 264991295389.dkr.ecr.us-east-1.amazonaws.com
+```
 
 Successful authentication should return:
 
+```text
 Login Succeeded
-Docker Image Build
+```
+
+---
+
+# 🐳 Docker Image Build
 
 The Jenkins pipeline builds the Docker image from the individual microservice directory.
 
 Example:
 
+```bash
 docker build -t adservice .
+```
 
 The resulting local image is:
 
+```text
 adservice:latest
-Docker Image Tagging
+```
+
+---
+
+# 🏷️ Docker Image Tagging
 
 Before pushing the image to ECR, Jenkins applies the build number as the image tag.
 
 Example:
 
+```bash
 docker tag adservice:latest \
-264991295389.dkr.ecr.us-east-1.amazonaws.com/adservice:${BUILD_NUMBER}
+  264991295389.dkr.ecr.us-east-1.amazonaws.com/adservice:${BUILD_NUMBER}
+```
 
 If the Jenkins build number is:
 
+```text
 25
+```
 
 the resulting image is:
 
+```text
 264991295389.dkr.ecr.us-east-1.amazonaws.com/adservice:25
-Push Image to ECR
+```
+
+---
+
+# 📤 Push Image to ECR
 
 The tagged image is pushed using:
 
+```bash
 docker push \
-264991295389.dkr.ecr.us-east-1.amazonaws.com/adservice:${BUILD_NUMBER}
+  264991295389.dkr.ecr.us-east-1.amazonaws.com/adservice:${BUILD_NUMBER}
+```
 
 The expected flow is:
 
+```text
 Docker Build
-     |
-     v
+     │
+     ▼
 adservice:latest
-     |
-     | docker tag
-     v
+     │
+     │ docker tag
+     ▼
 ECR Image
-     |
-     | docker push
-     v
+     │
+     │ docker push
+     ▼
 Amazon ECR
-Example Jenkins Image Pipeline
+```
 
-A simplified image build and push stage:
+---
 
+# 🔄 Jenkins Image Pipeline
+
+A simplified image build and push pipeline is:
+
+```groovy
 stage("Docker Image Build") {
     steps {
         script {
@@ -341,244 +409,449 @@ stage("ECR Image Pushing") {
         }
     }
 }
+```
 
-The actual Jenkins implementation should use the repository and account configuration applicable to the environment.
+The actual Jenkins implementation should use the repository and AWS account configuration applicable to the environment.
 
-IAM Permissions
+---
+
+# 🔑 IAM Permissions
 
 The Jenkins execution environment requires permissions to interact with ECR.
 
 Typical ECR actions required for image push include:
 
+```text
 ecr:GetAuthorizationToken
-
 ecr:BatchCheckLayerAvailability
 ecr:CompleteLayerUpload
 ecr:InitiateLayerUpload
 ecr:PutImage
 ecr:UploadLayerPart
+```
 
-The permissions should be attached to the IAM role used by the Jenkins host or provided through the appropriate AWS credential mechanism.
+These permissions should be attached to the IAM role used by the Jenkins host or provided through the appropriate AWS credential mechanism.
 
-Validation
+The permissions should be scoped according to the project's security requirements.
 
-After provisioning the ECR repositories, verify them using AWS CLI.
+---
 
-List repositories:
+# 🔍 ECR Validation
 
+After provisioning the ECR repositories, verify them using the AWS CLI.
+
+---
+
+## List ECR Repositories
+
+Run:
+
+```bash
 aws ecr describe-repositories \
   --region us-east-1
+```
 
-List a specific repository:
+The command should return the repositories provisioned for the microservices.
 
+---
+
+## List a Specific Repository
+
+Run:
+
+```bash
 aws ecr describe-repositories \
   --repository-names adservice \
   --region us-east-1
-Verify ECR Images
+```
+
+Verify that the expected repository exists.
+
+---
+
+# 🖼️ Verify ECR Images
 
 After Jenkins pushes an image:
 
+```bash
 aws ecr list-images \
   --repository-name adservice \
   --region us-east-1
+```
 
 Example:
 
+```text
 IMAGE TAG
 ---------
 1
 2
 3
+```
 
 To inspect image details:
 
+```bash
 aws ecr describe-images \
   --repository-name adservice \
   --region us-east-1
-Verify Docker Image Locally
+```
+
+This can be used to verify image tags and image metadata.
+
+---
+
+# 🐳 Verify Docker Image Locally
 
 On the Jenkins host:
 
+```bash
 docker images
+```
 
 Expected output should contain the service image:
 
+```text
 adservice
+```
 
 Example:
 
+```text
 REPOSITORY
 adservice
 
 TAG
 latest
+```
 
 After tagging:
 
+```text
 264991295389.dkr.ecr.us-east-1.amazonaws.com/adservice
-ECR to EKS Image Flow
+```
+
+The tagged image should be available locally before the push operation.
+
+---
+
+# ☸️ ECR → EKS Image Flow
 
 The image created in this phase is consumed by Kubernetes in the next phases.
 
 Example Kubernetes reference:
 
+```yaml
 containers:
   - name: adservice
     image: 264991295389.dkr.ecr.us-east-1.amazonaws.com/adservice:25
+```
 
 The deployment flow becomes:
 
+```text
 GitHub
-   |
-   v
+   │
+   ▼
 Jenkins
-   |
-   | Docker Build
-   v
+   │
+   │ Docker Build
+   ▼
 Docker Image
-   |
-   | Push
-   v
+   │
+   │ Push
+   ▼
 Amazon ECR
-   |
-   | Image Reference
-   v
+   │
+   │ Image Reference
+   ▼
 Kubernetes Deployment
-   |
-   v
+   │
+   ▼
 EKS Pod
-CI/CD Integration
+```
 
-ECR is the boundary between the CI and deployment stages.
+---
+
+# 🔄 CI/CD Integration
+
+ECR acts as the boundary between the CI and deployment stages.
 
 The CI pipeline performs:
 
+```text
 Source Checkout
-      |
-      v
+      │
+      ▼
 Docker Build
-      |
-      v
+      │
+      ▼
 Security Checks
-      |
-      v
+      │
+      ▼
 Docker Image
-      |
-      v
+      │
+      ▼
 ECR Push
+```
 
 The deployment pipeline consumes the image:
 
+```text
 ECR Image
-    |
-    v
+    │
+    ▼
 Kubernetes Manifest
-    |
-    v
+    │
+    ▼
 GitOps Repository
-    |
-    v
+    │
+    ▼
 Argo CD
-    |
-    v
+    │
+    ▼
 EKS
-Security Considerations
+```
+
+This establishes the container image flow required for the later Kubernetes and GitOps phases.
+
+---
+
+# 🔒 Security Considerations
 
 The following security practices are applied:
 
-ECR repositories are managed through Terraform.
-Image scanning is enabled on push.
-Jenkins uses IAM-based AWS authentication.
-Container images use versioned tags.
-ECR repositories are separated by microservice.
-AWS credentials should not be hardcoded in Jenkinsfiles.
-Secrets should be stored using Jenkins Credentials or AWS IAM mechanisms.
-Production environments should use stricter repository policies and lifecycle controls.
-Evidence to Capture
+- ECR repositories are managed through Terraform.
+- Image scanning is enabled on push.
+- Jenkins uses IAM-based AWS authentication.
+- Container images use versioned tags.
+- ECR repositories are separated by microservice.
+- AWS credentials should not be hardcoded in Jenkinsfiles.
+- Secrets should be stored using Jenkins Credentials or AWS IAM mechanisms.
+- Production environments should use stricter repository policies and lifecycle controls.
 
-The following evidence should be stored under:
+---
 
+# 📸 Evidence Collection
+
+Store implementation evidence under:
+
+```text
 evidence/05-ecr/
+```
 
 Recommended screenshots:
 
-01-ecr-repositories.png
-02-ecr-adservice-repository.png
-03-ecr-image-list.png
-04-ecr-image-details.png
-05-jenkins-docker-build.png
-06-jenkins-ecr-push.png
-07-ecr-image-scan.png
-08-aws-cli-ecr-validation.png
+```text
+evidence/05-ecr/
+│
+├── 01-ecr-repositories.png
+├── 02-ecr-adservice-repository.png
+├── 03-ecr-image-list.png
+├── 04-ecr-image-details.png
+├── 05-jenkins-docker-build.png
+├── 06-jenkins-ecr-push.png
+├── 07-ecr-image-scan.png
+└── 08-aws-cli-ecr-validation.png
+```
 
-Evidence should demonstrate:
+---
 
-ECR repositories were created.
-Individual microservice repositories exist.
-Docker images were successfully pushed.
-Images have versioned tags.
-Image scanning is enabled.
-Jenkins successfully authenticated with ECR.
-Jenkins successfully pushed the container image.
-AWS CLI can retrieve the repository and image information.
-Validation Checklist
+## Evidence Should Demonstrate
 
-Use the following checklist to verify this phase:
+The captured evidence should demonstrate:
 
-[ ] ECR repositories created
-[ ] One repository created per microservice
-[ ] Repository names verified
-[ ] Image scanning enabled
-[ ] Jenkins has ECR permissions
-[ ] Docker build successful
-[ ] ECR authentication successful
-[ ] Docker image tagged
-[ ] Docker image pushed
-[ ] Image visible in ECR
-[ ] Image tag matches Jenkins build number
-[ ] ECR image scan completed
-[ ] Kubernetes can reference the ECR image
-Expected Result
+- ECR repositories were created.
+- Individual microservice repositories exist.
+- Docker images were successfully pushed.
+- Images have versioned tags.
+- Image scanning is enabled.
+- Jenkins successfully authenticated with ECR.
+- Jenkins successfully pushed the container image.
+- AWS CLI can retrieve repository information.
+- AWS CLI can retrieve image information.
 
-At the end of Phase 05:
+---
 
-                 GitHub
-                    |
-                    v
-                 Jenkins
-                    |
-              Docker Build
-                    |
-                    v
-             Docker Image
-                    |
-                    v
-            Amazon ECR
-             /    |    \
-            /     |     \
-       Service  Service  Service
-       Repo     Repo     Repo
-         |        |        |
-         +--------+--------+
-                  |
-                  v
-              Amazon EKS
+# 🧪 Validation Checklist
 
-The AWS environment should contain an ECR repository for each microservice, and Jenkins should be capable of building and pushing versioned Docker images into the corresponding repositories.
+Before moving to the next phase, verify:
 
-Phase Completion
+- [ ] ECR repositories created
+- [ ] One repository created per microservice
+- [ ] Repository names verified
+- [ ] Image scanning enabled
+- [ ] Jenkins has ECR permissions
+- [ ] Docker build successful
+- [ ] ECR authentication successful
+- [ ] Docker image tagged
+- [ ] Docker image pushed
+- [ ] Image visible in ECR
+- [ ] Image tag matches Jenkins build number
+- [ ] ECR image scan completed
+- [ ] Kubernetes can reference the ECR image
+- [ ] Evidence captured
+
+---
+
+# 📊 Expected Result
+
+At the end of Phase 05, the container image architecture should follow this model:
+
+```text
+                         GitHub
+                            │
+                            ▼
+                         Jenkins
+                            │
+                            │ Docker Build
+                            ▼
+                      Docker Image
+                            │
+                            ▼
+                       Amazon ECR
+                      /     |     \
+                     /      |      \
+                Service   Service   Service
+                 Repo      Repo      Repo
+                   │         │         │
+                   └─────────┼─────────┘
+                             │
+                             ▼
+                         Amazon EKS
+```
+
+The AWS environment should contain an ECR repository for each microservice.
+
+Jenkins should be capable of:
+
+```text
+Build
+  │
+  ▼
+Tag
+  │
+  ▼
+Authenticate
+  │
+  ▼
+Push
+  │
+  ▼
+Amazon ECR
+```
+
+The resulting container images should be ready for consumption by Kubernetes deployments.
+
+---
+
+# 🏁 Phase Completion Criteria
 
 Phase 05 is considered complete when:
 
-All required ECR repositories are provisioned.
-Jenkins can authenticate with ECR.
-Microservice Docker images can be built successfully.
-Images can be tagged using Jenkins build numbers.
-Images can be pushed successfully to ECR.
-Images are visible in the AWS ECR console.
-Image scanning is enabled.
-The resulting ECR image references are ready for Kubernetes deployment.
+- [ ] All required ECR repositories are provisioned.
+- [ ] One repository exists for each required microservice.
+- [ ] Repository configuration is verified.
+- [ ] Image scanning is enabled.
+- [ ] Jenkins can authenticate with ECR.
+- [ ] Microservice Docker images can be built successfully.
+- [ ] Images can be tagged using Jenkins build numbers.
+- [ ] Images can be pushed successfully to ECR.
+- [ ] Images are visible in the AWS ECR console.
+- [ ] Image tags provide Jenkins build traceability.
+- [ ] ECR image scanning is verified.
+- [ ] The resulting ECR image references are ready for Kubernetes deployment.
+- [ ] Required implementation evidence has been captured.
 
-The next phase is:
+---
 
-Phase 06 — Jenkins CI
+# 📝 Outcome
+
+At the end of Phase 05, the project has a functional Amazon ECR-based container image registry layer.
+
+The resulting DevSecOps image flow is:
+
+```text
+                    Microservice Source
+                           │
+                           ▼
+                      GitHub
+                           │
+                           ▼
+                       Jenkins
+                           │
+                    Docker Build
+                           │
+                           ▼
+                     Docker Image
+                           │
+                    Security Scan
+                           │
+                           ▼
+                      Amazon ECR
+                           │
+                    Versioned Image
+                           │
+                           ▼
+                    Kubernetes / EKS
+                           │
+                           ▼
+                      Microservices
+```
+
+Amazon ECR now provides the centralized image distribution layer between the CI pipeline and the Kubernetes deployment platform.
+
+This prepares the project for the next phase, where Jenkins CI automation will be implemented.
+
+---
+
+# 📚 Related Phases
+
+| Phase | Documentation |
+|---|---|
+| Phase 01 | [AWS Microservices DevSecOps Architecture](../01-architecture/) |
+| Phase 02 | [Terraform State Management](../02-terraform-state/) |
+| Phase 03 | [AWS Network & Jump Host](../03-aws-network/) |
+| Phase 04 | [Amazon EKS Cluster](../04-eks/) |
+| Phase 05 | **Amazon ECR** |
+| Phase 06 | [Jenkins CI](../06-jenkins-ci/) |
+| Phase 07 | [Kubernetes](../07-kubernetes/) |
+| Phase 08 | [Argo CD GitOps](../08-argocd/) |
+
+---
+
+# 🚀 Next Phase
+
+**Phase 06 — Jenkins CI**
+
+The next phase will implement the Jenkins CI pipeline responsible for automating:
+
+```text
+Source Checkout
+      │
+      ▼
+Build
+      │
+      ▼
+Test
+      │
+      ▼
+Security Checks
+      │
+      ▼
+Docker Build
+      │
+      ▼
+ECR Authentication
+      │
+      ▼
+Image Push
+```
+
+---
+
+**Phase 05 — Amazon ECR**
+
+**Status:** Container Registry Layer Implemented
+
+**Next:** Phase 06 — Jenkins CI
